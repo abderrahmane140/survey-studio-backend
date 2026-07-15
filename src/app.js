@@ -1,13 +1,14 @@
 const express = require("express")
 const cors = require("cors")
 
+const surveyRoutes = require("./routes/survey.routes")
+
 const app = express()
 
 app.use(cors())
+
 app.use(express.json())
 
-app.get("/", (req, res) => {
-    res.send("Server is running!");
-});
+app.use("/api/serveys", surveyRoutes)
 
 module.exports = app
