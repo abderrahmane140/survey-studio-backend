@@ -47,7 +47,40 @@ const getAllSurveys = async (req, res) => {
         })
     }
 }
+
+const getSurveyById = async (req, res) => {
+    try {
+        const {id} = req.params;
+
+        const survey = await prisma.survey.findUnique({
+            where: {
+                id
+            }
+        })
+
+        if (!survey) {
+            return res.status(404).json({
+                success: false,
+                message: "Survey not found"
+            })
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: survey
+        })
+    } catch (error) {
+
+        console.log(error);
+        
+        return res.status(500).json({
+            message: false,
+            message: "Internal server error"
+        })
+    }
+}
 module.exports = {
     createSurvey,
-    getAllSurveys
+    getAllSurveys,
+    getSurveyById
 }
