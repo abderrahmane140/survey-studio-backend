@@ -109,9 +109,36 @@ const updateSurvey = async (req, res) => {
     }
 }
 
+const deleteSurvey = async (req, res) => {
+    try {
+         
+        const {id} = req.params;
+
+        await prisma.survey.delete({
+            where: {
+                id
+            }
+        })
+
+        return res.status(200).json({
+            success: true,
+            message: "Survey deleted successfully"
+        })
+    } catch (error) {
+
+        console.log(error)
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        })
+    }
+}
+
 module.exports = {
     createSurvey,
     getAllSurveys,
     getSurveyById,
-    updateSurvey
+    updateSurvey,
+    deleteSurvey
 }
