@@ -15,6 +15,11 @@ const {
     getSections
 } = require("../controllers/section.controller")
 
+const {
+    createQuestion,
+    getQuestions
+} = require("../controllers/question.conroller");
+
 router.post("/", createSurvey);
 router.get("/", getAllSurveys);
 router.get("/:id", getSurveyById);
@@ -26,5 +31,14 @@ router.delete("/:id", deleteSurvey);
 router.post("/:surveyId/sections", createSection)
 router.get("/:surveyId/sections", getSections)
 
+//Question
+router.post(
+    "/:surveyId/sections/:sectionId/questions",
+    createQuestion
+)
 
+router.get(
+    "/:surveyId/sections/:sectionId/questions",
+    getQuestions
+);
 module.exports = router;
