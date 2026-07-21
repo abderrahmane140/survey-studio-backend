@@ -7,7 +7,8 @@ const {
     getAllSurveys,
     getSurveyById,
     updateSurvey,
-    deleteSurvey
+    deleteSurvey,
+    publishSurvey
 } = require("../controllers/survey.controller")
 
 const {
@@ -41,4 +42,7 @@ router.get(
     "/:surveyId/sections/:sectionId/questions",
     getQuestions
 );
+
+router.patch("/:id/publish", publishSurvey);
+
 module.exports = router;
