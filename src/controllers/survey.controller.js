@@ -135,10 +135,62 @@ const deleteSurvey = async (req, res) => {
     }
 }
 
+// Publish a Survey
+
+const publishSurvey = async ( req, res ) => {
+    try {
+
+        const {id} = req.params
+
+        const survey = await prisma.survey.findUnique({
+            where: {
+                id
+            }
+        })
+
+        if (!survey){
+            return res.status(404).json({
+                success: false,
+                message: "Survey not found"
+            })
+        }
+
+        if (survey.status === "published") {
+            return res.status(400).json({
+                success: false,
+                message: "Survey is already published"
+            })
+        }
+
+        const publishedSurvey = await prisma.survey.update({
+            where: {
+                id
+            },
+            data: {
+                status: "published",
+                publishedAt: new Date()
+            }
+        })
+        return res.status(200).json({
+            success: true,
+            message: "Survey published successfully",
+            data: publishedSurvey
+        })
+    } catch (error) {
+        console.error(error)
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal srever error"
+        })
+    }
+}
+
 module.exports = {
     createSurvey,
     getAllSurveys,
     getSurveyById,
     updateSurvey,
-    deleteSurvey
+    deleteSurvey,
+    publishSurvey
 }
