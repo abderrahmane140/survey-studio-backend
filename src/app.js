@@ -7,6 +7,10 @@ const sectionRoutes = require("./routes/section.routes")
 
 const questionRoutes = require("./routes/question.routes");
 
+const  getPublicSurvey  = require("./routes/public.routes");
+
+const responseRoutes = require("./routes/response.route")
+
 const app = express()
 
 app.use(cors())
@@ -18,5 +22,9 @@ app.use("/api/surveys", surveyRoutes)
 app.use("/api/sections", sectionRoutes)
 
 app.use("/api/questions", questionRoutes);
+
+app.use("/api/public", getPublicSurvey)
+
+app.use("/api/responses", responseRoutes);
 
 module.exports = app
