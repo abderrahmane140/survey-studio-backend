@@ -1,6 +1,9 @@
 const express = require("express")
 const cors = require("cors")
 
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./config/swagger");
+
 const surveyRoutes = require("./routes/survey.routes")
 
 const sectionRoutes = require("./routes/section.routes")
@@ -26,5 +29,11 @@ app.use("/api/questions", questionRoutes);
 app.use("/api/public", getPublicSurvey)
 
 app.use("/api/responses", responseRoutes);
+
+app.use(
+    "/api/docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec)
+)
 
 module.exports = app

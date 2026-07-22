@@ -1,0 +1,611 @@
+openapi: 3.0.0
+info:
+  title: Survey Studio API
+  version: 1.0.0
+  description: REST API for creating and managing surveys.
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+tags:
+  - name: Surveys
+  - name: Sections
+  - name: Questions
+  - name: Public
+  - name: Responses
+
+paths:
+  # ------------------------------------------------------------------
+  # SURVEYS
+  # ------------------------------------------------------------------
+  /api/surveys:
+    get:
+      tags: [Surveys]
+      summary: List all surveys
+      responses:
+        "200":
+          description: List of surveys
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Survey"
+    post:
+      tags: [Surveys]
+      summary: Create a new survey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SurveyInput"
+      responses:
+        "201":
+          description: Survey created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SurveyResponseWrapper"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/surveys/{id}:
+    get:
+      tags: [Surveys]
+      summary: Get a survey by ID
+      parameters:
+        - $ref: "#/components/parameters/SurveyId"
+      responses:
+        "200":
+          description: Survey found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SurveyResponseWrapper"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Surveys]
+      summary: Update a survey
+      parameters:
+        - $ref: "#/components/parameters/SurveyId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SurveyInput"
+      responses:
+        "200":
+          description: Survey updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SurveyResponseWrapper"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Surveys]
+      summary: Delete a survey
+      parameters:
+        - $ref: "#/components/parameters/SurveyId"
+      responses:
+        "200":
+          description: Survey deleted successfully
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/surveys/{id}/publish:
+    patch:
+      tags: [Surveys]
+      summary: Publish a survey
+      parameters:
+        - $ref: "#/components/parameters/SurveyId"
+      responses:
+        "200":
+          description: Survey published successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SurveyResponseWrapper"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ------------------------------------------------------------------
+  # SECTIONS
+  # ------------------------------------------------------------------
+  /api/surveys/{surveyId}/sections:
+    post:
+      tags: [Sections]
+      summary: Create a section in a survey
+      parameters:
+        - $ref: "#/components/parameters/SurveyIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SectionInput"
+      responses:
+        "201":
+          description: Section created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SectionResponseWrapper"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    get:
+      tags: [Sections]
+      summary: List sections of a survey
+      parameters:
+        - $ref: "#/components/parameters/SurveyIdParam"
+      responses:
+        "200":
+          description: List of sections
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Section"
+
+  /api/sections/{id}:
+    put:
+      tags: [Sections]
+      summary: Update a section
+      parameters:
+        - $ref: "#/components/parameters/SectionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SectionInput"
+      responses:
+        "200":
+          description: Section updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SectionResponseWrapper"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Sections]
+      summary: Delete a section
+      parameters:
+        - $ref: "#/components/parameters/SectionId"
+      responses:
+        "200":
+          description: Section deleted successfully
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ------------------------------------------------------------------
+  # QUESTIONS
+  # ------------------------------------------------------------------
+  /api/surveys/{surveyId}/sections/{sectionId}/questions:
+    post:
+      tags: [Questions]
+      summary: Create a question in a section
+      parameters:
+        - $ref: "#/components/parameters/SurveyIdParam"
+        - $ref: "#/components/parameters/SectionIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuestionInput"
+      responses:
+        "201":
+          description: Question created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuestionResponseWrapper"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    get:
+      tags: [Questions]
+      summary: List questions of a section
+      parameters:
+        - $ref: "#/components/parameters/SurveyIdParam"
+        - $ref: "#/components/parameters/SectionIdParam"
+      responses:
+        "200":
+          description: List of questions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Question"
+
+  /api/questions/{id}:
+    put:
+      tags: [Questions]
+      summary: Update a question
+      parameters:
+        - $ref: "#/components/parameters/QuestionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuestionInput"
+      responses:
+        "200":
+          description: Question updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuestionResponseWrapper"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Questions]
+      summary: Delete a question
+      parameters:
+        - $ref: "#/components/parameters/QuestionId"
+      responses:
+        "200":
+          description: Question deleted successfully
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ------------------------------------------------------------------
+  # PUBLIC
+  # ------------------------------------------------------------------
+  /api/public/surveys/{id}:
+    get:
+      tags: [Public]
+      summary: Get a published survey (public access, no auth)
+      description: Returns a published survey with its sections and questions, for respondents to fill out.
+      parameters:
+        - $ref: "#/components/parameters/SurveyId"
+      responses:
+        "200":
+          description: Published survey found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SurveyResponseWrapper"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ------------------------------------------------------------------
+  # RESPONSES
+  # ------------------------------------------------------------------
+  /api/responses:
+    post:
+      tags: [Responses]
+      summary: Submit a survey response
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResponseInput"
+      responses:
+        "201":
+          description: Response submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SurveyResponseObjectWrapper"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/responses/survey/{surveyId}:
+    get:
+      tags: [Responses]
+      summary: Get all responses for a survey
+      parameters:
+        - $ref: "#/components/parameters/SurveyIdParam"
+      responses:
+        "200":
+          description: List of responses for the survey
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SurveyResponseObject"
+
+components:
+  parameters:
+    SurveyId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Survey ID
+    SurveyIdParam:
+      name: surveyId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Survey ID
+    SectionId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Section ID
+    SectionIdParam:
+      name: sectionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Section ID
+    QuestionId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Question ID
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: Resource not found
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: Internal server error
+
+  schemas:
+    Survey:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          example: draft
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    SurveyInput:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          example: Customer Satisfaction Survey
+        description:
+          type: string
+          example: A short survey about our service.
+
+    SurveyResponseWrapper:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Survey"
+
+    Section:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        surveyId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        orderIndex:
+          type: integer
+
+    SectionInput:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          example: General Information
+        orderIndex:
+          type: integer
+          example: 0
+
+    SectionResponseWrapper:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Section"
+
+    Question:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sectionId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          example: text
+        label:
+          type: string
+        description:
+          type: string
+          nullable: true
+        required:
+          type: boolean
+        placeholder:
+          type: string
+          nullable: true
+        options:
+          type: object
+          nullable: true
+        orderIndex:
+          type: integer
+
+    QuestionInput:
+      type: object
+      required: [type, label]
+      properties:
+        type:
+          type: string
+          example: text
+          description: "Question type, e.g. text, single_choice, multiple_choice, rating"
+        label:
+          type: string
+          example: What is your name?
+        description:
+          type: string
+        required:
+          type: boolean
+          example: false
+        placeholder:
+          type: string
+        options:
+          type: object
+          description: JSON payload for choice-based question types
+        orderIndex:
+          type: integer
+          example: 0
+
+    QuestionResponseWrapper:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Question"
+
+    ResponseAnswerInput:
+      type: object
+      required: [questionId, value]
+      properties:
+        questionId:
+          type: string
+          format: uuid
+        value:
+          description: Answer value; shape depends on the question type
+          example: "Blue"
+
+    ResponseInput:
+      type: object
+      required: [surveyId, answers]
+      properties:
+        surveyId:
+          type: string
+          format: uuid
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResponseAnswerInput"
+
+    SurveyResponseObject:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        surveyId:
+          type: string
+          format: uuid
+        submittedAt:
+          type: string
+          format: date-time
+        answers:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              questionId:
+                type: string
+                format: uuid
+              value: {}
+
+    SurveyResponseObjectWrapper:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/SurveyResponseObject"
