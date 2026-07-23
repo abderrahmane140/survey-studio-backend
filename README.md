@@ -338,8 +338,6 @@ Answer
 - Pagination
 - Search & Filtering
 - Soft Delete
-- Swagger / OpenAPI Documentation
-- Docker Support
 - Unit & Integration Tests
 - Rate Limiting
 - Logging
