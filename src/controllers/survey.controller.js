@@ -50,35 +50,47 @@ const getAllSurveys = async (req, res) => {
 
 const getSurveyById = async (req, res) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
 
         const survey = await prisma.survey.findUnique({
-            where: {
-                id
+            where: { id },
+            include: {
+                sections: {
+                    orderBy: {
+                        orderIndex: "asc"
+                    },
+                    include: {
+                        questions: {
+                            orderBy: {
+                                orderIndex: "asc"
+                            }
+                        }
+                    }
+                }
             }
-        })
+        });
 
         if (!survey) {
             return res.status(404).json({
                 success: false,
                 message: "Survey not found"
-            })
+            });
         }
 
         return res.status(200).json({
             success: true,
             data: survey
-        })
-    } catch (error) {
+        });
 
-        console.log(error);
-        
+    } catch (error) {
+        console.error(error);
+
         return res.status(500).json({
             success: false,
             message: "Internal server error"
-        })
+        });
     }
-}
+};
 
 const updateSurvey = async (req, res) => {
     try {
