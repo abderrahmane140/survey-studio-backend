@@ -74,7 +74,7 @@ const getSurveyById = async (req, res) => {
         console.log(error);
         
         return res.status(500).json({
-            message: false,
+            success: false,
             message: "Internal server error"
         })
     }
