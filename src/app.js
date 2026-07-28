@@ -20,6 +20,11 @@ app.use(cors())
 
 app.use(express.json())
 
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+});
+
 app.use("/api/surveys", surveyRoutes)
 
 app.use("/api/sections", sectionRoutes)
@@ -29,6 +34,8 @@ app.use("/api/questions", questionRoutes);
 app.use("/api/public", getPublicSurvey)
 
 app.use("/api/responses", responseRoutes);
+
+
 
 app.use(
     "/api/docs",
