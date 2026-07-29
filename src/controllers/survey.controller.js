@@ -34,11 +34,23 @@ const getAllSurveys = async (req, res) => {
       orderBy: {
         createdAt: "desc",
       },
+      include: {
+        _count: {
+          select: {
+            responses: true,
+          },
+        },
+      },
     });
+
+    const formattedSurveys = surveys.map(({ _count, ...survey }) => ({
+      ...survey,
+      responses: _count.responses,
+    }));
 
     return res.status(200).json({
       success: true,
-      data: surveys,
+      data: formattedSurveys,
     });
   } catch (error) {
     console.log(error);
