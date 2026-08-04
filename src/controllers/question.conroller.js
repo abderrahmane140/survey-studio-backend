@@ -182,9 +182,71 @@ const deleteQuestion = async (req, res) => {
   }
 };
 
+// Reorder questions within a section
+const reorderQuestions = async (req, res) => {
+  try {
+    const { sectionId } = req.params;
+    const { order } = req.body; // array of question IDs in desired order
+
+    if (!Array.isArray(order) || order.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "order must be a non-empty array of question IDs",
+      });
+    }
+
+    const existingQuestions = await prisma.surveyQuestion.findMany({
+      where: { sectionId },
+      select: { id: true },
+    });
+
+    const existingIds = existingQuestions.map((q) => q.id).sort();
+    const submittedIds = [...order].sort();
+
+    const isSameSet =
+      existingIds.length === submittedIds.length &&
+      existingIds.every((id, i) => id === submittedIds[i]);
+
+    if (!isSameSet) {
+      return res.status(400).json({
+        success: false,
+        message: "order must include exactly the questions that belong to this section",
+      });
+    }
+
+    await prisma.$transaction(
+      order.map((id, index) =>
+        prisma.surveyQuestion.update({
+          where: { id },
+          data: { orderIndex: index },
+        })
+      )
+    );
+
+    const questions = await prisma.surveyQuestion.findMany({
+      where: { sectionId },
+      orderBy: { orderIndex: "asc" },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Questions reordered successfully",
+      data: questions,
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 module.exports = {
   createQuestion,
   getQuestions,
   updateQuestion,
   deleteQuestion,
+  reorderQuestions
 };

@@ -141,9 +141,73 @@ const deleteSection = async (req, res) => {
         })
     }
 }
+
+// Reorder sections within a survey
+const reorderSections = async (req, res) => {
+    try {
+        const { surveyId } = req.params
+        const { order } = req.body // array of section IDs in desired order
+
+        if (!Array.isArray(order) || order.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "order must be a non-empty array of section IDs"
+            })
+        }
+
+        const existingSections = await prisma.surveySection.findMany({
+            where: { surveyId },
+            select: { id: true }
+        })
+
+        const existingIds = existingSections.map(s => s.id).sort()
+        const submittedIds = [...order].sort()
+
+        const isSameSet =
+            existingIds.length === submittedIds.length &&
+            existingIds.every((id, i) => id === submittedIds[i])
+
+        if (!isSameSet) {
+            return res.status(400).json({
+                success: false,
+                message: "order must include exactly the sections that belong to this survey"
+            })
+        }
+
+        await prisma.$transaction(
+            order.map((id, index) =>
+                prisma.surveySection.update({
+                    where: { id },
+                    data: { orderIndex: index }
+                })
+            )
+        )
+
+        const sections = await prisma.surveySection.findMany({
+            where: { surveyId },
+            orderBy: { orderIndex: "asc" }
+        })
+
+        return res.status(200).json({
+            success: true,
+            message: "Sections reordered successfully",
+            data: sections
+        })
+    } catch (error) {
+        console.log(error)
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        })
+    }
+}
+
+
 module.exports = {
     createSection,
     getSections,
     updateSection,
-    deleteSection
+    deleteSection,
+    reorderSections
 }

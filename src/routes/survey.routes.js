@@ -13,12 +13,14 @@ const {
 
 const {
     createSection,
-    getSections
+    getSections,
+    reorderSections
 } = require("../controllers/section.controller")
 
 const {
     createQuestion,
-    getQuestions
+    getQuestions,
+    reorderQuestions
 } = require("../controllers/question.conroller");
 
 router.post("/", createSurvey);
@@ -44,5 +46,12 @@ router.get(
 );
 
 router.patch("/:id/publish", publishSurvey);
+
+router.patch("/:surveyId/sections/reorder", reorderSections)
+
+router.patch(
+    "/:surveyId/sections/:sectionId/questions/reorder",
+    reorderQuestions
+)
 
 module.exports = router;
