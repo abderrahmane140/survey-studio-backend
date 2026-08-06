@@ -14,6 +14,8 @@ const  getPublicSurvey  = require("./routes/public.routes");
 
 const responseRoutes = require("./routes/response.route")
 
+const statisticsRoutes = require("./routes/statistics.routes")
+
 const app = express()
 
 app.use(cors())
@@ -34,6 +36,8 @@ app.use("/api/questions", questionRoutes);
 app.use("/api/public", getPublicSurvey)
 
 app.use("/api/responses", responseRoutes);
+
+app.use("/api/statistics", statisticsRoutes)
 
 
 
