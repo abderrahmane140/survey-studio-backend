@@ -1,5 +1,16 @@
 const prisma = require("../config/prisma");
 
+const allowedTypes = [
+  "short_text",
+  "long_text",
+  "email",
+  "number",
+  "date",
+  "single_choice",
+  "multiple_choice",
+  "rating",
+];
+
 const createQuestion = async (req, res) => {
   try {
     const { sectionId } = req.params;
@@ -20,17 +31,6 @@ const createQuestion = async (req, res) => {
       });
     }
 
-    const allowedTypes = [
-      "short_text",
-      "long_text",
-      "email",
-      "number",
-      "date",
-      "single_choice",
-      "multiple_choice",
-      "rating",
-    ];
-
     if (!allowedTypes.includes(type)) {
       return res.status(400).json({
         success: false,
@@ -47,18 +47,29 @@ const createQuestion = async (req, res) => {
       },
     });
 
-    const question = await prisma.surveyQuestion.create({
-      data: {
-        sectionId,
-        label,
-        type,
-        required: required ?? false,
-        placeholder,
-        description,
-        options,
-        orderIndex: lastQuestion ? lastQuestion.orderIndex + 1 : 1,
-      },
-    });
+    const [question] = await prisma.$transaction([
+      prisma.surveyQuestion.create({
+        data: {
+          sectionId,
+          label,
+          type,
+          required: required ?? false,
+          placeholder,
+          description,
+          options,
+          orderIndex: lastQuestion ? lastQuestion.orderIndex + 1 : 1,
+        },
+      }),
+
+      prisma.survey.update({
+        where: {
+          id: section.surveyId,
+        },
+        data: {
+          updatedAt: new Date(),
+        },
+      }),
+    ]);
 
     return res.status(201).json({
       success: true,
@@ -110,17 +121,6 @@ const updateQuestion = async (req, res) => {
     const { label, type, description, placeholder, required, options } =
       req.body;
 
-    const allowedTypes = [
-      "short_text",
-      "long_text",
-      "email",
-      "number",
-      "date",
-      "single_choice",
-      "multiple_choice",
-      "rating",
-    ];
-
     if (!allowedTypes.includes(type)) {
       return res.status(400).json({
         success: false,
@@ -128,19 +128,43 @@ const updateQuestion = async (req, res) => {
       });
     }
 
-    const question = await prisma.surveyQuestion.update({
-      where: {
-        id,
-      },
-      data: {
-        label,
-        type,
-        description,
-        placeholder,
-        required,
-        options,
-      },
+    // Look up the question first — we need its section to find the survey
+    const existingQuestion = await prisma.surveyQuestion.findUnique({
+      where: { id },
+      include: { section: true },
     });
+
+    if (!existingQuestion) {
+      return res.status(404).json({
+        success: false,
+        message: "Question not found",
+      });
+    }
+
+    const [question] = await prisma.$transaction([
+      prisma.surveyQuestion.update({
+        where: {
+          id,
+        },
+        data: {
+          label,
+          type,
+          description,
+          placeholder,
+          required,
+          options,
+        },
+      }),
+
+      prisma.survey.update({
+        where: {
+          id: existingQuestion.section.surveyId,
+        },
+        data: {
+          updatedAt: new Date(),
+        },
+      }),
+    ]);
 
     return res.status(200).json({
       success: true,
@@ -162,11 +186,35 @@ const deleteQuestion = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await prisma.surveyQuestion.delete({
-      where: {
-        id,
-      },
+    // Look up the question first — same reason as updateQuestion
+    const existingQuestion = await prisma.surveyQuestion.findUnique({
+      where: { id },
+      include: { section: true },
     });
+
+    if (!existingQuestion) {
+      return res.status(404).json({
+        success: false,
+        message: "Question not found",
+      });
+    }
+
+    await prisma.$transaction([
+      prisma.surveyQuestion.delete({
+        where: {
+          id,
+        },
+      }),
+
+      prisma.survey.update({
+        where: {
+          id: existingQuestion.section.surveyId,
+        },
+        data: {
+          updatedAt: new Date(),
+        },
+      }),
+    ]);
 
     return res.status(200).json({
       success: true,
@@ -186,12 +234,23 @@ const deleteQuestion = async (req, res) => {
 const reorderQuestions = async (req, res) => {
   try {
     const { sectionId } = req.params;
-    const { order } = req.body; // array of question IDs in desired order
+    const { order } = req.body; 
 
     if (!Array.isArray(order) || order.length === 0) {
       return res.status(400).json({
         success: false,
         message: "order must be a non-empty array of question IDs",
+      });
+    }
+
+    const section = await prisma.surveySection.findUnique({
+      where: { id: sectionId },
+    });
+
+    if (!section) {
+      return res.status(404).json({
+        success: false,
+        message: "Section not found",
       });
     }
 
@@ -214,14 +273,18 @@ const reorderQuestions = async (req, res) => {
       });
     }
 
-    await prisma.$transaction(
-      order.map((id, index) =>
+    await prisma.$transaction([
+      ...order.map((id, index) =>
         prisma.surveyQuestion.update({
           where: { id },
           data: { orderIndex: index },
         })
-      )
-    );
+      ),
+      prisma.survey.update({
+        where: { id: section.surveyId },
+        data: { updatedAt: new Date() },
+      }),
+    ]);
 
     const questions = await prisma.surveyQuestion.findMany({
       where: { sectionId },
