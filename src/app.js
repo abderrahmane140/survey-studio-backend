@@ -6,8 +6,6 @@ const swaggerSpec = require("./config/swagger");
 
 const surveyRoutes = require("./routes/survey.routes")
 
-const sectionRoutes = require("./routes/section.routes")
-
 const questionRoutes = require("./routes/question.routes");
 
 const  getPublicSurvey  = require("./routes/public.routes");
@@ -28,8 +26,6 @@ app.use((req, res, next) => {
 });
 
 app.use("/api/surveys", surveyRoutes)
-
-app.use("/api/sections", sectionRoutes)
 
 app.use("/api/questions", questionRoutes);
 

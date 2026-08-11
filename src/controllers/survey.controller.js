@@ -69,16 +69,9 @@ const getSurveyById = async (req, res) => {
     const survey = await prisma.survey.findUnique({
       where: { id },
       include: {
-        sections: {
+        questions: {
           orderBy: {
             orderIndex: "asc",
-          },
-          include: {
-            questions: {
-              orderBy: {
-                orderIndex: "asc",
-              },
-            },
           },
         },
       },

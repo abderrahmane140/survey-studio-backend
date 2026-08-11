@@ -12,12 +12,6 @@ const {
 } = require("../controllers/survey.controller")
 
 const {
-    createSection,
-    getSections,
-    reorderSections
-} = require("../controllers/section.controller")
-
-const {
     createQuestion,
     getQuestions,
     reorderQuestions
@@ -29,29 +23,12 @@ router.get("/:id", getSurveyById);
 router.put("/:id", updateSurvey);
 router.delete("/:id", deleteSurvey);
 
-
-//Sections
-router.post("/:surveyId/sections", createSection)
-router.get("/:surveyId/sections", getSections)
-
 //Question
-router.post(
-    "/:surveyId/sections/:sectionId/questions",
-    createQuestion
-)
-
-router.get(
-    "/:surveyId/sections/:sectionId/questions",
-    getQuestions
-);
+router.post("/:surveyId/questions", createQuestion)
+router.get("/:surveyId/questions", getQuestions)
 
 router.patch("/:id/publish", publishSurvey);
 
-router.patch("/:surveyId/sections/reorder", reorderSections)
-
-router.patch(
-    "/:surveyId/sections/:sectionId/questions/reorder",
-    reorderQuestions
-)
+router.patch("/:surveyId/questions/reorder", reorderQuestions)
 
 module.exports = router;

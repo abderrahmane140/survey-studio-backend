@@ -13,21 +13,21 @@ const allowedTypes = [
 
 const createQuestion = async (req, res) => {
   try {
-    const { sectionId } = req.params;
+    const { surveyId } = req.params;
 
     const { label, type, required, placeholder, description, options } =
       req.body;
 
-    const section = await prisma.surveySection.findUnique({
+    const survey = await prisma.survey.findUnique({
       where: {
-        id: sectionId,
+        id: surveyId,
       },
     });
 
-    if (!section) {
+    if (!survey) {
       return res.status(404).json({
         success: false,
-        message: "Section not found",
+        message: "Survey not found",
       });
     }
 
@@ -40,7 +40,7 @@ const createQuestion = async (req, res) => {
 
     const lastQuestion = await prisma.surveyQuestion.findFirst({
       where: {
-        sectionId,
+        surveyId,
       },
       orderBy: {
         orderIndex: "desc",
@@ -50,7 +50,7 @@ const createQuestion = async (req, res) => {
     const [question] = await prisma.$transaction([
       prisma.surveyQuestion.create({
         data: {
-          sectionId,
+          surveyId,
           label,
           type,
           required: required ?? false,
@@ -63,7 +63,7 @@ const createQuestion = async (req, res) => {
 
       prisma.survey.update({
         where: {
-          id: section.surveyId,
+          id: surveyId,
         },
         data: {
           updatedAt: new Date(),
@@ -88,11 +88,11 @@ const createQuestion = async (req, res) => {
 // Get Questions
 const getQuestions = async (req, res) => {
   try {
-    const { sectionId } = req.params;
+    const { surveyId } = req.params;
 
     const questions = await prisma.surveyQuestion.findMany({
       where: {
-        sectionId,
+        surveyId,
       },
       orderBy: {
         orderIndex: "asc",
@@ -128,10 +128,9 @@ const updateQuestion = async (req, res) => {
       });
     }
 
-    // Look up the question first — we need its section to find the survey
+    // Look up the question first — we need its surveyId
     const existingQuestion = await prisma.surveyQuestion.findUnique({
       where: { id },
-      include: { section: true },
     });
 
     if (!existingQuestion) {
@@ -158,7 +157,7 @@ const updateQuestion = async (req, res) => {
 
       prisma.survey.update({
         where: {
-          id: existingQuestion.section.surveyId,
+          id: existingQuestion.surveyId,
         },
         data: {
           updatedAt: new Date(),
@@ -189,7 +188,6 @@ const deleteQuestion = async (req, res) => {
     // Look up the question first — same reason as updateQuestion
     const existingQuestion = await prisma.surveyQuestion.findUnique({
       where: { id },
-      include: { section: true },
     });
 
     if (!existingQuestion) {
@@ -208,7 +206,7 @@ const deleteQuestion = async (req, res) => {
 
       prisma.survey.update({
         where: {
-          id: existingQuestion.section.surveyId,
+          id: existingQuestion.surveyId,
         },
         data: {
           updatedAt: new Date(),
@@ -230,11 +228,11 @@ const deleteQuestion = async (req, res) => {
   }
 };
 
-// Reorder questions within a section
+// Reorder questions within a survey
 const reorderQuestions = async (req, res) => {
   try {
-    const { sectionId } = req.params;
-    const { order } = req.body; 
+    const { surveyId } = req.params;
+    const { order } = req.body; // array of question IDs in desired order
 
     if (!Array.isArray(order) || order.length === 0) {
       return res.status(400).json({
@@ -243,19 +241,19 @@ const reorderQuestions = async (req, res) => {
       });
     }
 
-    const section = await prisma.surveySection.findUnique({
-      where: { id: sectionId },
+    const survey = await prisma.survey.findUnique({
+      where: { id: surveyId },
     });
 
-    if (!section) {
+    if (!survey) {
       return res.status(404).json({
         success: false,
-        message: "Section not found",
+        message: "Survey not found",
       });
     }
 
     const existingQuestions = await prisma.surveyQuestion.findMany({
-      where: { sectionId },
+      where: { surveyId },
       select: { id: true },
     });
 
@@ -269,7 +267,7 @@ const reorderQuestions = async (req, res) => {
     if (!isSameSet) {
       return res.status(400).json({
         success: false,
-        message: "order must include exactly the questions that belong to this section",
+        message: "order must include exactly the questions that belong to this survey",
       });
     }
 
@@ -281,13 +279,13 @@ const reorderQuestions = async (req, res) => {
         })
       ),
       prisma.survey.update({
-        where: { id: section.surveyId },
+        where: { id: surveyId },
         data: { updatedAt: new Date() },
       }),
     ]);
 
     const questions = await prisma.surveyQuestion.findMany({
-      where: { sectionId },
+      where: { surveyId },
       orderBy: { orderIndex: "asc" },
     });
 
@@ -311,5 +309,5 @@ module.exports = {
   getQuestions,
   updateQuestion,
   deleteQuestion,
-  reorderQuestions
+  reorderQuestions,
 };

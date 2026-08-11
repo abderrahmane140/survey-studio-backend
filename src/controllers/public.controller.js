@@ -12,16 +12,9 @@ const getPublicSurvey = async (req, res) => {
                 status: "published"
             },
             include: {
-                sections: {
+                questions: {
                     orderBy: {
                         orderIndex: "asc"
-                    },
-                    include: {
-                        questions: {
-                            orderBy: {
-                                orderIndex: "asc"
-                            }
-                        }
                     }
                 }
             }

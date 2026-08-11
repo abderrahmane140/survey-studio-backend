@@ -1,9 +1,7 @@
 const prisma = require("../config/prisma");
 
-// Helper: flatten a survey's questions out of its sections
-const getQuestionsFromSurvey = (survey) => {
-  return survey.sections.flatMap((section) => section.questions);
-};
+// Helper: questions now live directly on the survey
+const getQuestionsFromSurvey = (survey) => survey.questions;
 
 // Stats for ONE survey
 const getSurveyStatistics = async (req, res) => {
@@ -13,14 +11,9 @@ const getSurveyStatistics = async (req, res) => {
     const survey = await prisma.survey.findUnique({
       where: { id },
       include: {
-        sections: {
+        questions: {
           orderBy: { orderIndex: "asc" },
-          include: {
-            questions: {
-              orderBy: { orderIndex: "asc" },
-              include: { answers: true },
-            },
-          },
+          include: { answers: true },
         },
         responses: { select: { id: true } },
       },
@@ -113,12 +106,8 @@ const getAllSurveysStatistics = async (req, res) => {
   try {
     const surveys = await prisma.survey.findMany({
       include: {
-        sections: {
-          include: {
-            questions: {
-              include: { answers: true },
-            },
-          },
+        questions: {
+          include: { answers: true },
         },
         responses: { select: { id: true } },
       },

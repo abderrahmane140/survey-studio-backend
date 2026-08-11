@@ -10,7 +10,6 @@ servers:
 
 tags:
   - name: Surveys
-  - name: Sections
   - name: Questions
   - name: Public
   - name: Responses
@@ -119,91 +118,14 @@ paths:
           $ref: "#/components/responses/NotFound"
 
   # ------------------------------------------------------------------
-  # SECTIONS
-  # ------------------------------------------------------------------
-  /api/surveys/{surveyId}/sections:
-    post:
-      tags: [Sections]
-      summary: Create a section in a survey
-      parameters:
-        - $ref: "#/components/parameters/SurveyIdParam"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SectionInput"
-      responses:
-        "201":
-          description: Section created successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SectionResponseWrapper"
-        "404":
-          $ref: "#/components/responses/NotFound"
-    get:
-      tags: [Sections]
-      summary: List sections of a survey
-      parameters:
-        - $ref: "#/components/parameters/SurveyIdParam"
-      responses:
-        "200":
-          description: List of sections
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Section"
-
-  /api/sections/{id}:
-    put:
-      tags: [Sections]
-      summary: Update a section
-      parameters:
-        - $ref: "#/components/parameters/SectionId"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SectionInput"
-      responses:
-        "200":
-          description: Section updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SectionResponseWrapper"
-        "404":
-          $ref: "#/components/responses/NotFound"
-    delete:
-      tags: [Sections]
-      summary: Delete a section
-      parameters:
-        - $ref: "#/components/parameters/SectionId"
-      responses:
-        "200":
-          description: Section deleted successfully
-        "404":
-          $ref: "#/components/responses/NotFound"
-
-  # ------------------------------------------------------------------
   # QUESTIONS
   # ------------------------------------------------------------------
-  /api/surveys/{surveyId}/sections/{sectionId}/questions:
+  /api/surveys/{surveyId}/questions:
     post:
       tags: [Questions]
-      summary: Create a question in a section
+      summary: Create a question in a survey
       parameters:
         - $ref: "#/components/parameters/SurveyIdParam"
-        - $ref: "#/components/parameters/SectionIdParam"
       requestBody:
         required: true
         content:
@@ -221,10 +143,9 @@ paths:
           $ref: "#/components/responses/NotFound"
     get:
       tags: [Questions]
-      summary: List questions of a section
+      summary: List questions of a survey
       parameters:
         - $ref: "#/components/parameters/SurveyIdParam"
-        - $ref: "#/components/parameters/SectionIdParam"
       responses:
         "200":
           description: List of questions
@@ -239,6 +160,47 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/Question"
+
+  /api/surveys/{surveyId}/questions/reorder:
+    patch:
+      tags: [Questions]
+      summary: Reorder questions within a survey
+      parameters:
+        - $ref: "#/components/parameters/SurveyIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order]
+              properties:
+                order:
+                  type: array
+                  description: Question IDs in their new order
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        "200":
+          description: Questions reordered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Question"
+        "400":
+          description: order does not match the survey's existing questions
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /api/questions/{id}:
     put:
@@ -279,7 +241,7 @@ paths:
     get:
       tags: [Public]
       summary: Get a published survey (public access, no auth)
-      description: Returns a published survey with its sections and questions, for respondents to fill out.
+      description: Returns a published survey with its questions, for respondents to fill out.
       parameters:
         - $ref: "#/components/parameters/SurveyId"
       responses:
@@ -354,22 +316,6 @@ components:
         type: string
         format: uuid
       description: Survey ID
-    SectionId:
-      name: id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-      description: Section ID
-    SectionIdParam:
-      name: sectionId
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-      description: Section ID
     QuestionId:
       name: id
       in: path
@@ -454,48 +400,13 @@ components:
         data:
           $ref: "#/components/schemas/Survey"
 
-    Section:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        surveyId:
-          type: string
-          format: uuid
-        title:
-          type: string
-        orderIndex:
-          type: integer
-
-    SectionInput:
-      type: object
-      required: [title]
-      properties:
-        title:
-          type: string
-          example: General Information
-        orderIndex:
-          type: integer
-          example: 0
-
-    SectionResponseWrapper:
-      type: object
-      properties:
-        success:
-          type: boolean
-        message:
-          type: string
-        data:
-          $ref: "#/components/schemas/Section"
-
     Question:
       type: object
       properties:
         id:
           type: string
           format: uuid
-        sectionId:
+        surveyId:
           type: string
           format: uuid
         type:
