@@ -14,6 +14,9 @@ const responseRoutes = require("./routes/response.route")
 
 const statisticsRoutes = require("./routes/statistics.routes")
 
+const authRoutes = require("./routes/auth.routes");
+const authenticate = require("./middlewares/auth.middleware");
+
 const app = express()
 
 app.use(cors())
@@ -25,16 +28,12 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use("/api/surveys", surveyRoutes)
+app.use("/api/auth", authRoutes)
 
-app.use("/api/questions", questionRoutes);
-
-app.use("/api/public", getPublicSurvey)
-
-app.use("/api/responses", responseRoutes);
-
-app.use("/api/statistics", statisticsRoutes)
-
+app.use("/api/surveys", authenticate, surveyRoutes)
+app.use("/api/questions", authenticate, questionRoutes);
+app.use("/api/public", getPublicSurvey)   
+app.use("/api/statistics", authenticate, statisticsRoutes)
 
 
 app.use(
