@@ -34,6 +34,8 @@ app.use("/api/surveys", authenticate, surveyRoutes)
 app.use("/api/questions", authenticate, questionRoutes);
 app.use("/api/public", getPublicSurvey)   
 app.use("/api/statistics", authenticate, statisticsRoutes)
+app.use("/api/responses", authenticate, responseRoutes)
+
 
 
 app.use(
